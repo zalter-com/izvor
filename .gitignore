@@ -1,0 +1,15 @@
+# Production
+.env.sh
+node_modules
+package-lock.json
+
+# PID
+pidfile.pid
+
+# Log
+err.log
+out.log
+
+# Misc
+.idea
+.DS_Store
