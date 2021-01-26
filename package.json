@@ -1,10 +1,10 @@
 {
-	"name": "@zalter/Izvor",
+	"name": "izvor",
 	"author": "Zalter",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Server Core functionality",
 	"keywords": [],
-	"license": "UNLICENSED",
+	"license": "MIT",
 	"main": "src/index.mjs",
 	"scripts": {
 		"help": "node ./ help",
