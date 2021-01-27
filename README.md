@@ -25,10 +25,13 @@ In this document you'll find:
 
 - [Getting started](#getting-started)
 - Classes
-  - [Daemon](./docs/daemon.md)
-  - [Server](./docs/server.md)
-  - [Service](./docs/service.md)
-  - [ServiceManager](./docs/service-manager.md)
+  - [Daemon](https://github.com/zalter-io/izvor/blob/main/docs/daemon.md)
+  - [Server](https://github.com/zalter-io/izvor/blob/main/docs/server.md)
+  - [Service](https://github.com/zalter-io/izvor/blob/main/docs/service.md)
+  - [ServiceManager](https://github.com/zalter-io/izvor/blob/main/docs/service-manager.md)
+  - [HandlerDescriptor](https://github.com/zalter-io/izvor/blob/main/docs/handler-descriptor.md)
+  - [Pre-made HandlerDescriptors](https://github.com/zalter-io/izvor/blob/main/docs/premade-handler-descriptors.md)
+
 
 # Getting started
 
@@ -36,6 +39,23 @@ In this document you'll find:
 
 In order to start the server you'll first have to create or get an __SSL certificate__. The non-profit
 organisation [Let's Encrypt](https://letsencrypt.org) provides dv certificates for free.
+
+For development, you can create a [Self-signed certificate](https://en.wikipedia.org/wiki/Self-signed_certificate) with
+openssl in a *nix environment as follows:
+- first you need to create a private key:
+  ```shell
+  openssl genrsa -des3 -out key.pem 2048
+  ```
+- then generate a CSR (Certificate Signing Request)
+  ```shell
+  openssl req -new -key key.pem -out request.csr
+  ```
+- now you can Sign the certificate
+  ```shell
+  openssl x509 -req -days 365 -in request.csr -signkey key.pem -out certificate.pem
+  ```
+
+Since self-signed certificates don't use a chain all you need is the `certificate.pem` file and the `key.pem` file.
 
 You need to install __node.js__ *v15.6+*, and be prepared to deploy your software on a L4 balanced setup rather than a
 L7 to benefit from all the features.
