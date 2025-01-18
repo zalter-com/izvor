@@ -1,14 +1,14 @@
 import { constants as http2Constants } from "http2";
 import {
-	ErrorHandlerDescriptor,
-	HandlerDescriptor,
-	PostHandlerDescriptor,
-	PreHandlerDescriptor
-} from "./handler-descriptor.mjs";
+  Descriptor,
+  PostDescriptor,
+  PreDescriptor,
+  ErrorDescriptor
+} from "./descriptor.mjs";
 
 const {
-	HTTP2_HEADER_STATUS,
-	HTTP_STATUS_INTERNAL_SERVER_ERROR
+  HTTP2_HEADER_STATUS,
+  HTTP_STATUS_INTERNAL_SERVER_ERROR
 } = http2Constants;
 
 // noinspection JSUnfilteredForInLoop
@@ -22,197 +22,187 @@ const {
  * @property {Object<string, string>} [searchParams]
  */
 
-/**
- * @type Object<string, HandlerDescriptor | *>
- */
 export default class Service {
-	/**
-	 * A map containing the handler descriptors for faster access.
-	 * @type {Map<string, HandlerDescriptor>}
-	 */
-	#handlerDescriptors = new Map();
+  /**
+   * The header this service is using to identify the descriptor to call.
+   * @type {string}
+   */
+  #descriptorSelector;
 
-	/**
-	 * The header this service is using to identify the handler to call.
-	 * @type {string}
-	 */
-	#headerName = "";
+  /**
+   * Regular expression for selector matching
+   * @type {RegExp}
+   */
+  #descriptorMatcher;
 
-	/**
-	 *
-	 * @type {RegExp}
-	 */
-	#headerRegExp;
-	/**
-	 * Is this instance initialised
-	 * @type {boolean}
-	 */
-	#isInitialised = false;
+  /**
+   * Are the preHandlers executed regardless of whether the service has a handler it can select ?
+   * @type {boolean}
+   */
+  #alwaysExecPreDescriptors = false;
 
-	/**
-	 * Are the preHandlers executed regardless of whether the service has a handler it can select ?
-	 * @type {boolean}
-	 */
-	#alwaysExecPreHandlers = false;
+  /**
+   * Ordered List of preDescriptors.
+   * @type {PreDescriptor[]}
+   */
+  #preDescriptors = [];
 
-	/**
-	 * Ordered List of PreHandlerDescriptors.
-	 * @type {PreHandlerDescriptor[]}
-	 */
-	#preHandlerDescriptors = [];
+  /**
+   * A map containing the handler descriptors for faster access.
+   * @type {Map<string, Descriptor>}
+   */
+  #descriptors = new Map();
 
-	/**
-	 * Ordered List of PostHandlerDescriptors.
-	 * @type {PostHandlerDescriptor[]}
-	 */
-	#postHandlerDescriptors = [];
+  /**
+   * Ordered List of postDescriptors.
+   * @type {PostDescriptor[]}
+   */
+  #postDescriptors = [];
 
-	/**
-	 * Error Handler Descriptor executed when an error is thrown.
-	 * @type ErrorHandlerDescriptor
-	 */
-	#errorHandlerDescriptor;
+  /**
+   * Error Handler Descriptor executed when an error is thrown.
+   * @type ErrorDescriptor
+   */
+  #errorDescriptor;
 
-	/**
-	 *
-	 * @param {string} headerName The header where you want the Stream Manager to look for its handler selection.
-	 * @param {RegExp} [headerRegExp] RegExp with exactly one capturing group.
-	 * @param {boolean} alwaysExecPreHandlers Whether or not to execute the preHandlers regardless of whether the service has a handler for the selected marker.
-	 */
-	constructor(headerName, headerRegExp = undefined, alwaysExecPreHandlers = false) {
-		// reset all values (in case somebody thought they would do StreamManager.prototype.fn.call or something like it.
-		if (!headerName) {
-			throw new Error("A header must be set.");
-		}
+  /**
+   * @param {string} descriptorSelector The header where you want the Stream Manager to look for its handler selection.
+   * @param {RegExp} [descriptorMatcher] RegExp with exactly one capturing group.
+   * @param {boolean} alwaysExecPreDescriptors Whether or not to execute the pre descriptors regardless of whether the service has a handler for the selected marker.
+   */
+  constructor(descriptorSelector, descriptorMatcher = undefined, alwaysExecPreDescriptors = false) {
+    if (!descriptorSelector) {
+      throw new Error("Descriptor selector must be set.");
+    }
 
-		if (headerRegExp && !headerRegExp instanceof RegExp) {
-			throw new Error("HeaderRegExp must be a regular expression and have a capturing group if set.");
-		}
+    if (descriptorMatcher && !descriptorMatcher instanceof RegExp) {
+      throw new Error("Descriptor matcher must be a regular expression and have a capturing group if set.");
+    }
 
-		this.#alwaysExecPreHandlers = alwaysExecPreHandlers;
-		this.#headerName = headerName;
-		this.#headerRegExp = headerRegExp;
-	}
+    this.#descriptorSelector = descriptorSelector;
+    this.#descriptorMatcher = descriptorMatcher;
+    this.#alwaysExecPreDescriptors = alwaysExecPreDescriptors;
+  }
 
-	/**
-	 * Sets the error Handler descriptor
-	 * @param {ErrorHandlerDescriptor} errorHandlerDescriptor
-	 */
-	setErrorHandlerDescriptor(errorHandlerDescriptor) {
-		if (!(errorHandlerDescriptor instanceof ErrorHandlerDescriptor)) {
-			throw new Error("Error handlers can only be instances of ErrorHandlerDescriptor");
-		}
-		this.#errorHandlerDescriptor = errorHandlerDescriptor;
-	}
+  /**
+   * Sets the error descriptor
+   * @param {ErrorDescriptor} errorDescriptor
+   */
+  setErrorDescriptor(errorDescriptor) {
+    if (!(errorDescriptor instanceof ErrorDescriptor)) {
+      throw new Error("Error descriptor can only be instances of ErrorDescriptor.");
+    }
 
-	/**
-	 * Adds a handler descriptor.
-	 * @param {string} marker
-	 //Not sure... probably? * @param {HandlerDescriptor | PreHandlerDescriptor | PostHandlerDescriptor} handlerDescriptor
-	 * @param {HandlerDescriptor} handlerDescriptor
-	 */
-	setHandlerDescriptor(marker, handlerDescriptor) {
-		if (typeof marker !== "string") {
-			throw new Error("Markers values MUST be strings");
-		}
+    this.#errorDescriptor = errorDescriptor;
+  }
 
-		if (
-			!(handlerDescriptor instanceof HandlerDescriptor)
-		) {
-			throw new Error("Accepts only handler descriptors.");
-		}
+  /**
+   * Adds a handler descriptor.
+   * @param {string} marker
+   // Not sure... probably? * @param {Descriptor | PreDescriptor | PostDescriptor} descriptor
+   * @param {Descriptor} descriptor
+   */
+  setDescriptor(marker, descriptor) {
+    if (typeof marker !== "string") {
+      throw new Error("Markers values MUST be strings");
+    }
 
-		if (!marker) {
-			this.#handlerDescriptors.set("", handlerDescriptor);
-			return;
-		}
+    if (!(descriptor instanceof Descriptor)) {
+      throw new Error("Descriptor must be an instance of Descriptor.");
+    }
 
-		this.#handlerDescriptors.set(marker, handlerDescriptor);
-	}
+    if (!marker) {
+      this.#descriptors.set("", descriptor);
+      return;
+    }
 
-	/**
-	 * Adds another PreHandler.
-	 * @param {PreHandlerDescriptor} handlerDescriptors
-	 */
-	addPreHandlerDescriptors(...handlerDescriptors) {
-		if (handlerDescriptors.some((handlerDescriptor) => !(handlerDescriptor instanceof PreHandlerDescriptor))) {
-			throw new Error("Parameter 'handlerDescriptor' must be an instance of PostHandlerDescriptor.");
-		}
+    this.#descriptors.set(marker, descriptor);
+  }
 
-		this.#preHandlerDescriptors.push(...handlerDescriptors);
-	}
+  /**
+   * Adds a pre descriptor.
+   * @param {PreDescriptor} descriptors
+   */
+  addPreDescriptors(...descriptors) {
+    if (descriptors.some((descriptor) => !(descriptor instanceof PreDescriptor))) {
+      throw new Error("Descriptor must be an instance of PostDescriptor.");
+    }
 
-	/**
-	 * Adds another postHandler.
-	 * @param {PostHandlerDescriptor} handlerDescriptors
-	 */
-	addPostHandlerDescriptors(...handlerDescriptors) {
-		if (handlerDescriptors.some((handlerDescriptor) => !(handlerDescriptor instanceof PostHandlerDescriptor))) {
-			throw new Error("Parameter 'handlerDescriptor' must be an instance of PostHandlerDescriptor.");
-		}
+    this.#preDescriptors.push(...descriptors);
+  }
 
-		this.#postHandlerDescriptors.push(...handlerDescriptors);
-	}
+  /**
+   * Adds a post descriptor.
+   * @param {PostDescriptor} descriptors
+   */
+  addPostDescriptors(...descriptors) {
+    if (descriptors.some((descriptor) => !(descriptor instanceof PostDescriptor))) {
+      throw new Error("Descriptor must be an instance of PostDescriptor.");
+    }
 
-	/**
-	 *
-	 * @param {ServerHttp2Stream} stream
-	 * @param {Object<string, *>} headers
-	 * @return {HandlerDescriptor}
-	 */
-	#getSelectedDescriptor(stream, headers) {
-		if (this.#headerRegExp) {
-			const matchResult = headers[this.#headerName].match(this.#headerRegExp);
+    this.#postDescriptors.push(...descriptors);
+  }
 
-			if (!matchResult) {
-				stream.respond({
-					[HTTP2_HEADER_STATUS]: HTTP_STATUS_INTERNAL_SERVER_ERROR
-				}, { endStream: true });
-				console.error(`The stream header ${this.#headerName} had a value of ${headers[this.#headerName]} which did not match ${this.#headerRegExp}`);
-				return null;
-			}
+  /**
+   * @param {ServerHttp2Stream} stream
+   * @param {Object<string, *>} headers
+   * @return {Descriptor}
+   */
+  #getSelectedDescriptor(stream, headers) {
+    if (this.#descriptorMatcher) {
+      const matchResult = headers[this.#descriptorSelector].match(this.#descriptorMatcher);
 
-			const matchedDescriptor = this.#handlerDescriptors.get(matchResult[1]);
+      if (!matchResult) {
+        stream.respond(
+          { [HTTP2_HEADER_STATUS]: HTTP_STATUS_INTERNAL_SERVER_ERROR },
+          { endStream: true }
+        );
+        console.error(`The descriptor selector "${this.#descriptorSelector}" had a value of "${headers[this.#descriptorSelector]}" which did not match "${this.#descriptorMatcher}"`);
+        return null;
+      }
 
-			if (matchedDescriptor) {
-				headers[this.#headerName] = headers[this.#headerName].replace(this.#headerRegExp, "");
-			}
+      const matchedDescriptor = this.#descriptors.get(matchResult[1]);
 
-			return matchedDescriptor;
-		}
+      if (matchedDescriptor) {
+        headers[this.#descriptorSelector] = headers[this.#descriptorSelector].replace(this.#descriptorMatcher, "");
+      }
 
-		return this.#handlerDescriptors.get(headers[this.#headerName]);
-	}
+      return matchedDescriptor;
+    }
 
-	/**
-	 *
-	 * @param {ServerHttp2Stream} stream
-	 * @param {IncomingHttpHeaders} headers
-	 * @param {number} flags
-	 * @param {StreamContext} context
-	 */
-	async handle(stream, headers, flags, context) {
-		const selectedDescriptor = this.#getSelectedDescriptor(stream, context.processedHeaders);
-		try {
-			if (selectedDescriptor || this.#alwaysExecPreHandlers) {
-				// I think pre handlers should be executed only if there's a handler found. otherwise execute only the post handlers?
-				for (const handlerDescriptor of this.#preHandlerDescriptors) {
-					await handlerDescriptor.handle(stream, headers, flags, context);
-				}
+    return this.#descriptors.get(headers[this.#descriptorSelector]);
+  }
 
-				if (selectedDescriptor) {
-					await selectedDescriptor.handle(stream, headers, flags, context);
-				}
-			}
+  /**
+   * @param {ServerHttp2Stream} stream
+   * @param {IncomingHttpHeaders} headers
+   * @param {number} flags
+   * @param {StreamContext} context
+   */
+  async handle(stream, headers, flags, context) {
+    const selectedDescriptor = this.#getSelectedDescriptor(stream, context.processedHeaders);
 
-			for (const handlerDescriptor of this.#postHandlerDescriptors) {
-				await handlerDescriptor.handle(stream, headers, flags, context);
-			}
-		} catch (err) {
-			if (!this.#errorHandlerDescriptor) {
-				throw err;
-			}
-			await this.#errorHandlerDescriptor.handle(stream, headers, flags, context, err); // won't catch since if an error goes here...
-		}
-	}
+    try {
+      if (selectedDescriptor || this.#alwaysExecPreDescriptors) {
+        // I think pre descriptors should be executed only if there's a handler found, otherwise execute only the post descriptors?
+        for (const descriptor of this.#preDescriptors) {
+          await descriptor.handle(stream, headers, flags, context);
+        }
+
+        if (selectedDescriptor) {
+          await selectedDescriptor.handle(stream, headers, flags, context);
+        }
+      }
+
+      for (const descriptor of this.#postDescriptors) {
+        await descriptor.handle(stream, headers, flags, context);
+      }
+    } catch (err) {
+      if (!this.#errorDescriptor) {
+        throw err;
+      }
+
+      await this.#errorDescriptor.handle(stream, headers, flags, context, err); // won't catch since if an error goes here...
+    }
+  }
 }

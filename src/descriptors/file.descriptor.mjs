@@ -1,7 +1,7 @@
 import fs from "fs";
 import mimeTypes from "mime-types";
 import { constants as http2Constants } from "http2";
-import { PostHandlerDescriptor, PreHandlerDescriptor } from "../handler-descriptor.mjs";
+import { PostDescriptor, PreDescriptor } from "../descriptor.mjs";
 
 const {
   HTTP_STATUS_OK,
@@ -14,7 +14,7 @@ const {
 } = http2Constants;
 
 export function setFileHandlerToDescriptor(basePath, handlerInstance) {
-  handlerInstance.setHandlerFunction(((stream, headers, flags, context) => {
+  handlerInstance.setHandler(((stream, headers, flags, context) => {
     if (headers[HTTP2_HEADER_METHOD] !== "GET" || stream.headersSent || context.done) {
       return;
     }
@@ -49,14 +49,14 @@ export function setFileHandlerToDescriptor(basePath, handlerInstance) {
   }));
 }
 
-export class FilePreHandlerDescriptor extends PreHandlerDescriptor {
+export class FilePreDescriptor extends PreDescriptor {
   constructor(basePath) {
     super({});
     setFileHandlerToDescriptor(basePath, this);
   }
 }
 
-export class FilePostHandlerDescriptor extends PostHandlerDescriptor {
+export class FilePostDescriptor extends PostDescriptor {
   constructor(basePath) {
     super({});
     setFileHandlerToDescriptor(basePath, this);

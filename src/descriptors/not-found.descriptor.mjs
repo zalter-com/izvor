@@ -1,13 +1,13 @@
 import { constants as http2Constants } from "http2";
-import { PostHandlerDescriptor, PreHandlerDescriptor } from "../handler-descriptor.mjs";
+import { PostDescriptor, PreDescriptor } from "../descriptor.mjs";
 
 const {
   HTTP_STATUS_NOT_FOUND,
   HTTP2_HEADER_STATUS
 } = http2Constants;
 
-export function setNotFoundToDescriptor(handlerInstance) {
-  handlerInstance.setHandlerFunction(((stream, headers, flags, context) => {
+export function setNotFoundToDescriptor(descriptor) {
+  descriptor.setHandler(((stream, headers, flags, context) => {
     if (stream.headersSent || context.done) {
       return;
     }
@@ -19,14 +19,14 @@ export function setNotFoundToDescriptor(handlerInstance) {
   }));
 }
 
-export class NotFoundPreHandlerDescriptor extends PreHandlerDescriptor {
+export class NotFoundPreDescriptor extends PreDescriptor {
   constructor() {
     super({});
     setNotFoundToDescriptor(this);
   }
 }
 
-export class NotFoundPostHandlerDescriptor extends PostHandlerDescriptor {
+export class NotFoundPostDescriptor extends PostDescriptor {
   constructor() {
     super({});
     setNotFoundToDescriptor(this);

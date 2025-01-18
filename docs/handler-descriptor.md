@@ -1,12 +1,12 @@
 # Handler descriptors
 
-The handler Descriptors are a type of objects (classes) that are used to define how to handle the incoming stream
+The descriptor Descriptors are a type of objects (classes) that are used to define how to handle the incoming stream
 
-There are some [pre-made handler descriptors](premade-handler-descriptors.md) for you to use or expand upon.
+There are some [pre-made descriptor descriptors](premade-descriptor-descriptors.md) for you to use or expand upon.
 
 ---
 
-## Callback: `HandlerFunction(stream, headers, [flags, [context[, ...additionalParams]]])`
+## Callback: `Handler(stream, headers, [flags, [context[, ...additionalParams]]])`
 
 - `stream` [\<ServerHttp2Stream\>](https://nodejs.org/dist/latest-v15.x/docs/api/http2.html#http2_class_serverhttp2stream)
   The unmodified incoming stream.
@@ -27,81 +27,81 @@ There are some [pre-made handler descriptors](premade-handler-descriptors.md) fo
 ## Constructor: `new HandlerDescriptor(descriptorObject)`
 
 - `descriptorObject`[\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-  - `preHandlers` [\<Array\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) ([PreHandlerDescriptor](#class-prehandlerdescriptor))
-  - `postHandlers` [\<Array\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) ([PostHandlerDescriptor](#class-posthandlerdescriptor))
-  - `errorHandler` [ErrorHandlerDescriptor](#class-errorhandlerdescriptor)
-  - `handlerFunction` [HandlerFunction](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
+  - `preHandlers` [\<Array\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) ([PreDescriptor](#class-prehandlerdescriptor))
+  - `postHandlers` [\<Array\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) ([PostDescriptor](#class-posthandlerdescriptor))
+  - `errorHandler` [ErrorDescriptor](#class-errorhandlerdescriptor)
+  - `descriptor` [Handler](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
 
 ## Methods
 
-### Method: `setHandlerFunction(handlerFunction)`
+### Method: `setHandlerFunction(descriptor)`
 
-- handlerFunction [HandlerFunction](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
+- descriptor [Handler](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
 
 Sets the callback to be invoked.
 
 ### Method: `addPreHandlerDescriptors(preHandlerDescriptor[, ...preHandlerDescriptor])`
 
-- `preHandlerDescriptor`[\<PreHandlerDescriptor\>](#class-prehandlerdescriptor)
+- `preHandlerDescriptor`[\<PreDescriptor\>](#class-prehandlerdescriptor)
 
-Adds the provided PreHandlerDescriptor(s) to be invoked orderly (first in first run) prior to the `handlerFunction`.
+Adds the provided PreDescriptor(s) to be invoked orderly (first in first run) prior to the `descriptor`.
 
 ### Method: `addPostHandlerDescriptors(postHandlerDescriptor[, ...postHandlerDescriptor])`
 
-- `postHandlerDescriptor`[\<PostHandlerDescriptor\>](#class-posthandlerdescriptor)
+- `postHandlerDescriptor`[\<PostDescriptor\>](#class-posthandlerdescriptor)
 
-Adds the provided PostHandlerDescriptor(s) to be invoked orderly (first in first run) after the `handlerFunction`.
+Adds the provided PostDescriptor(s) to be invoked orderly (first in first run) after the `descriptor`.
 
 ### Method: `setErrorHandlerDescriptor(errorHandlerDescriptor)`
 
-- `errorHandlerDescriptor`[\<ErrorHandlerDescriptor\>](#class-errorhandlerdescriptor)
+- `errorHandlerDescriptor`[\<ErrorDescriptor\>](#class-errorhandlerdescriptor)
 
-Sets the handler for errors. It will be invoked when an error is thrown, or a promise rejects.
+Sets the descriptor for errors. It will be invoked when an error is thrown, or a promise rejects.
 
 ---
 
-# Class: `PreHandlerDescriptor`
+# Class: `PreDescriptor`
 
-## Constructor: `new PreHandlerDescriptor(descriptorObject)`
+## Constructor: `new PreDescriptor(descriptorObject)`
 
 - `descriptorObject`[\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-  - `handlerFunction` [HandlerFunction](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
+  - `descriptor` [Handler](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
 
-### Method: `setHandlerFunction(handlerFunction)`
+### Method: `setHandlerFunction(descriptor)`
 
-- handlerFunction [HandlerFunction](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
+- descriptor [Handler](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
 
 Sets the callback to be invoked.
 
 ---
 
-# Class: `PostHandlerDescriptor`
+# Class: `PostDescriptor`
 
-## Constructor: `new PostHandlerDescriptor(descriptorObject)`
+## Constructor: `new PostDescriptor(descriptorObject)`
 
 - `descriptorObject`[\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-  - `handlerFunction` [HandlerFunction](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
+  - `descriptor` [Handler](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
 
-### Method: `setHandlerFunction(handlerFunction)`
+### Method: `setHandlerFunction(descriptor)`
 
-- handlerFunction [HandlerFunction](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
+- descriptor [Handler](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
 
 Sets the callback to be invoked.
 
 ---
 
-# Class: `ErrorHandlerDescriptor`
+# Class: `ErrorDescriptor`
 
-## Constructor: `new ErrorHandlerDescriptor(descriptorObject)`
+## Constructor: `new ErrorDescriptor(descriptorObject)`
 
 - `descriptorObject`[\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-  - `handlerFunction` [HandlerFunction](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
+  - `descriptor` [Handler](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
 
-> Note that in this situation, the provided handler function, will receive the error as the additionalParameter
+> Note that in this situation, the provided descriptor function, will receive the error as the additionalParameter
 
-### Method: `setHandlerFunction(handlerFunction)`
+### Method: `setHandlerFunction(descriptor)`
 
-- handlerFunction [HandlerFunction](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
+- descriptor [Handler](#callback-handlerfunctionstream-headers-flags-context-additionalparams)
 
 Sets the callback to be invoked.
-> Note that in this situation, the provided handler function, will receive the error as the additionalParameter
+> Note that in this situation, the provided descriptor function, will receive the error as the additionalParameter

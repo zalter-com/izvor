@@ -6,36 +6,36 @@ This class can be extended.
 
 ## Constructing
 
-### Constructor: `new ServiceManager(headerName[, headerRegExp])`
- - `headerName` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+### Constructor: `new ServiceManager(serviceSelector[, descriptorMatcher])`
+ - `serviceSelector` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
      The name of the header used to do matching and selection of the service (can select a `ServiceManager` when chaining).
- - `headerRegExp` [\<RegExp\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp)
+ - `descriptorMatcher` [\<RegExp\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp)
      __Optional__  - Regular Expression object used to make the matching take only a part of the header.
      Used in situations where you want to use special HTTP/2 headers like `":path"`
 
-Creates an instance of the `ServiceManager` that will match its stream processors based on the given `headerName` and,
-when provided, a regular expression `headerRegExp` used to match only a certain portion of the said header.
+Creates an instance of the `ServiceManager` that will match its stream processors based on the given `serviceSelector` and,
+when provided, a regular expression `descriptorMatcher` used to match only a certain portion of the said header.
 
 Please note that in the HTTP/2 standard, everything pertaining to a request is part of its headers.
 
-The `headerName` parameter will be able to do matching on any of the HTTP/2 headers, which includes the special headers.
+The `serviceSelector` parameter will be able to do matching on any of the HTTP/2 headers, which includes the special headers.
 
 
-The `headerRegExp` parameter will also be used when chaining; since subsequent `ServiceManager` instances that intend to
-use the same `headerName` (like, when you want to do the matching on the `":path"`), will do so on a version of that header
+The `descriptorMatcher` parameter will also be used when chaining; since subsequent `ServiceManager` instances that intend to
+use the same `serviceSelector` (like, when you want to do the matching on the `":path"`), will do so on a version of that header
 where the portion matched previously has been erased.
 
 Should you choose to use these processed headers, they can be found as part of the `StreamContext` instance sent to each
-`handlerFunction` as well as each subsequent `Service` or `ServiceManager`, should you choose to extend these classes.
+`descriptor` as well as each subsequent `Service` or `ServiceManager`, should you choose to extend these classes.
 
 
 ## Methods
 
-### Method: `enableAltSvc(svcHeaderString [, enableCors])`
+### Method: `enableAltSvc(svcHeaderString [, enableCORS])`
  - `altSvcHeaderValue` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
     an [Alt-Svc header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Alt-Svc) value like:
      `h2=":443"; ma=3600, h3-25=":443"; ma=2592000`
- - `[enableCors=true]` [\<boolean\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) | [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) By default, it's `true`.
+ - `[enableCORS=true]` [\<boolean\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) | [\<Object\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) By default, it's `true`.
     - `[Access-Control-Allow-Origin="*"]` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) A valid value for [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin) header. By default, it's `"*"`
     - `[Access-Control-Allow-Headers="*"]` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) A valid value for [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers) header. By default, it's `"*"`
     - `[Access-Control-Allow-Methods="*"]` [\<string\>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) A valid value for [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods) header. By default, it's `"*"`
@@ -48,7 +48,7 @@ CORS. This is usually made to enable "CORS" for the service thus it also enables
 `altSvcHeaderValue` is needed to allow the service to advertise it provides "CORS". By default, its value should be just
 `h2=":443"` or whatever your outside port number is.
 
-`enableCors` value is `true` by default, but you can provide an object containing the CORS Headers. Some values explained above
+`enableCORS` value is `true` by default, but you can provide an object containing the CORS Headers. Some values explained above
 are used if none provided for those headers.
 
 Commonly used like:

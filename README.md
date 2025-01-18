@@ -29,8 +29,8 @@ In this document you'll find:
   - [Server](https://github.com/zalter-io/izvor/blob/main/docs/server.md)
   - [Service](https://github.com/zalter-io/izvor/blob/main/docs/service.md)
   - [ServiceManager](https://github.com/zalter-io/izvor/blob/main/docs/service-manager.md)
-  - [HandlerDescriptor](https://github.com/zalter-io/izvor/blob/main/docs/handler-descriptor.md)
-  - [Pre-made HandlerDescriptors](https://github.com/zalter-io/izvor/blob/main/docs/premade-handler-descriptors.md)
+  - [HandlerDescriptor](https://github.com/zalter-io/izvor/blob/main/docs/descriptor-descriptor.md)
+  - [Pre-made HandlerDescriptors](https://github.com/zalter-io/izvor/blob/main/docs/premade-descriptor-descriptors.md)
 
 
 # Getting started
@@ -117,7 +117,7 @@ const mainServiceManager = new ServiceManager(":path", /^\/(\w*)/);
 const defaultService = new Service(":path");
 
 defaultService.setHandlerDescriptor("", new HandlerDescriptor({
-  handlerFunction: (stream) => {
+  descriptor: (stream) => {
     stream.respond({
       ":status": 200
     });

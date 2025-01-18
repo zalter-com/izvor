@@ -1,5 +1,5 @@
 import { constants as http2Constants } from "http2";
-import { PreHandlerDescriptor } from "../index.mjs";
+import { PreDescriptor } from "../index.mjs";
 
 const {
   HTTP2_HEADER_CONTENT_TYPE,
@@ -7,7 +7,7 @@ const {
   HTTP_STATUS_UNPROCESSABLE_ENTITY
 } = http2Constants;
 
-export class ValidatePreHandlerDescriptor extends PreHandlerDescriptor {
+export class ValidatePreDescriptor extends PreDescriptor {
   #validator;
 
   /**

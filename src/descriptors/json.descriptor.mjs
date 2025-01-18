@@ -1,11 +1,11 @@
 import { constants as http2Constants } from "http2";
-import { PreHandlerDescriptor } from "../handler-descriptor.mjs";
+import { PreDescriptor } from "../descriptor.mjs";
 
 const {
   HTTP2_HEADER_CONTENT_TYPE
 } = http2Constants;
 
-export class JSONPreHandlerDescriptor extends PreHandlerDescriptor {
+export class JSONPreDescriptor extends PreDescriptor {
   constructor(throwOnError) {
     super({
       handler: (stream, headers, flags, context) => {
