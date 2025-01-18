@@ -14,50 +14,51 @@ const {
 } = http2Constants;
 
 export function setFileHandlerToDescriptor(basePath, handlerInstance) {
-	handlerInstance.setHandlerFunction(((stream, headers, flags, context) => {
-		if (headers[HTTP2_HEADER_METHOD] !== "GET" || stream.headersSent || context.done) {
-			return;
-		}
+  handlerInstance.setHandlerFunction(((stream, headers, flags, context) => {
+    if (headers[HTTP2_HEADER_METHOD] !== "GET" || stream.headersSent || context.done) {
+      return;
+    }
 
-		let path = headers[HTTP2_HEADER_PATH].replace(/(\.\.\/)+/, ""); // Security reasons.
+    let path = headers[HTTP2_HEADER_PATH].replace(/(\.\.\/)+/, ""); // Security reasons.
 
-		if (path === "/") {
-			path = "/index.html";
-		}
+    if (path === "/") {
+      path = "/index.html";
+    }
 
-		let filePath = `${basePath}/${path}`;
-		const additionalHeaders = {};
+    let filePath = `${basePath}/${path}`;
+    const additionalHeaders = {};
 
-		if (headers[HTTP2_HEADER_ACCEPT_ENCODING]) {
-			const encodings = headers[HTTP2_HEADER_ACCEPT_ENCODING].split(",").map(i => i.trim());
-			if (encodings.includes("gzip")) {
-				if (fs.existsSync(filePath + ".gz")) {
-					filePath += ".gz";
-					additionalHeaders[HTTP2_HEADER_CONTENT_ENCODING] = "gzip";
-				}
-			}
-		}
+    if (headers[HTTP2_HEADER_ACCEPT_ENCODING]) {
+      const encodings = headers[HTTP2_HEADER_ACCEPT_ENCODING].split(",").map(i => i.trim());
 
-		if (fs.existsSync(filePath)) {
-			stream.respond(Object.assign({}, {
-				[HTTP2_HEADER_CONTENT_TYPE]: mimeTypes.lookup(path) || mimeTypes.lookup("a.txt"),
-				[HTTP2_HEADER_STATUS]: HTTP_STATUS_OK
-			}, additionalHeaders));
-			fs.createReadStream(filePath).pipe(stream);
-		}
-	}));
+      if (encodings.includes("gzip")) {
+        if (fs.existsSync(filePath + ".gz")) {
+          filePath += ".gz";
+          additionalHeaders[HTTP2_HEADER_CONTENT_ENCODING] = "gzip";
+        }
+      }
+    }
+
+    if (fs.existsSync(filePath)) {
+      stream.respond(Object.assign({}, {
+        [HTTP2_HEADER_CONTENT_TYPE]: mimeTypes.lookup(path) || mimeTypes.lookup("a.txt"),
+        [HTTP2_HEADER_STATUS]: HTTP_STATUS_OK
+      }, additionalHeaders));
+      fs.createReadStream(filePath).pipe(stream);
+    }
+  }));
 }
 
 export class FilePreHandlerDescriptor extends PreHandlerDescriptor {
-	constructor(basePath) {
-		super({});
-		setFileHandlerToDescriptor(basePath, this);
-	}
+  constructor(basePath) {
+    super({});
+    setFileHandlerToDescriptor(basePath, this);
+  }
 }
 
 export class FilePostHandlerDescriptor extends PostHandlerDescriptor {
-	constructor(basePath) {
-		super({});
-		setFileHandlerToDescriptor(basePath, this);
-	}
+  constructor(basePath) {
+    super({});
+    setFileHandlerToDescriptor(basePath, this);
+  }
 }

@@ -7,13 +7,6 @@
 	"license": "MIT",
   "repository": "https://github.com/zalter-io/izvor/",
 	"main": "src/index.mjs",
-	"scripts": {
-		"help": "node ./ help",
-		"start": "source ./.env.sh && node ./ start",
-		"start-inspect": "source ./.env.sh && node --inspect ./ start",
-		"restart": "node ./ restart",
-		"stop": "node ./ stop"
-	},
 	"dependencies": {
 		"mime-types": "^2.1.27",
 		"yargs": "^16.0.3"

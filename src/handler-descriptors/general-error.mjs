@@ -7,21 +7,22 @@ const {
 } = http2Constants;
 
 export default class GeneralErrorHandlerDescriptor extends ErrorHandlerDescriptor {
-	constructor() {
-		super({
-			handler: (stream, headers, flags, context, error) => {
-				console.error("Error occurred during stream processing.", error);
+  constructor() {
+    super({
+      handler: (stream, headers, flags, context, error) => {
+        console.error("Error occurred during stream processing.", error);
 
-				if (!stream.headersSent) {
-					stream.respond({
-						[HTTP2_HEADER_STATUS]: HTTP_STATUS_INTERNAL_SERVER_ERROR
-					}, { endStream: true });
-				}
+        if (!stream.headersSent) {
+          stream.respond(
+            { [HTTP2_HEADER_STATUS]: HTTP_STATUS_INTERNAL_SERVER_ERROR },
+            { endStream: true }
+          );
+        }
 
-				if(!stream.writableEnded){
-					stream.end();
-				}
-			}
-		});
-	}
+        if (!stream.writableEnded) {
+          stream.end();
+        }
+      }
+    });
+  }
 }

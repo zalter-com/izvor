@@ -1,7 +1,7 @@
 import http2, { constants as http2Constants } from "http2";
 import EventEmitter from "events";
-import ServiceManager from "./service-manager.mjs";
 import { SessionContext } from "./context.mjs";
+import ServiceManager from "./service-manager.mjs";
 
 const {
 	HTTP2_HEADER_STATUS,
@@ -20,7 +20,6 @@ const {
  */
 
 export default class Server extends EventEmitter {
-
 	/**
 	 * @type {Http2SecureServer}
 	 */
@@ -33,7 +32,7 @@ export default class Server extends EventEmitter {
 
   /**
    *
-   * @type {Set<Http2ServerSession>}
+   * @type {Set<ServerHttp2Session>}
    */
 	#sessions = new Set();
 
@@ -88,9 +87,10 @@ export default class Server extends EventEmitter {
 						console.error(error);
 
 						if (!stream.headersSent) {
-							stream.respond({
-								[HTTP2_HEADER_STATUS]: HTTP_STATUS_INTERNAL_SERVER_ERROR
-							}, { endStream: true });
+							stream.respond(
+							  { [HTTP2_HEADER_STATUS]: HTTP_STATUS_INTERNAL_SERVER_ERROR },
+                { endStream: true }
+              );
 						}
 
 						if (!stream.writableEnded) {
@@ -100,7 +100,7 @@ export default class Server extends EventEmitter {
 					});
 			});
 			session.on("close", ()=>{
-			  this.emit("sessionclose", session, sessionContext);
+			  this.emit("session_close", session, sessionContext);
       })
 		});
 
@@ -108,7 +108,8 @@ export default class Server extends EventEmitter {
 			this.emit("listen");
 		});
 	}
-	stop(){
+
+	stop() {
 	  this.#http2SecureServer.close();
   }
 }

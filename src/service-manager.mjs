@@ -3,12 +3,12 @@ import { SessionContext, StreamContext } from "./context.mjs";
 import Service from "./service.mjs";
 
 const {
-	HTTP2_HEADER_PATH,
-	HTTP2_HEADER_METHOD,
-	HTTP2_HEADER_STATUS,
-	HTTP_STATUS_OK,
 	HTTP_STATUS_INTERNAL_SERVER_ERROR,
-	HTTP2_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN
+	HTTP_STATUS_OK,
+	HTTP2_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
+	HTTP2_HEADER_METHOD,
+	HTTP2_HEADER_PATH,
+	HTTP2_HEADER_STATUS
 } = http2Constants;
 
 /**
@@ -20,7 +20,25 @@ const {
  */
 
 export default class ServiceManager {
-	/**
+  /**
+   * Stream Processors Container (StreamManagers and StreamHandlers)
+   * @type {Map<string, ServiceManager | Service>}
+   */
+  #streamProcessors = new Map();
+
+  /**
+   * The name of the header this StreamManager looks for to do its stream processor selection.
+   * @type {string | null}
+   */
+  #headerName = null;
+
+  /**
+   * Regular expression for header matching
+   * @type {RegExp}
+   */
+  #headerRegExp;
+
+  /**
 	 * Constructs a ServiceManager setting its header lookup and the regex for the item selection.
 	 * If the regexp is missing it'll use the header in its entirety. (way faster)
 	 * @note if  you want to use it with the ":path" header, you can use the static ready made regexp (StreamManager.FIRST_PATH_ELEMENT)
@@ -43,18 +61,6 @@ export default class ServiceManager {
 		this.#headerName = headerName;
 		this.#headerRegExp = headerRegExp;
 	}
-
-	/**
-	 * Stream Processors Container (StreamManagers and StreamHandlers)
-	 * @type {Map<string, ServiceManager | Service>}
-	 */
-	#streamProcessors = new Map();
-	/**
-	 * The name of the header this StreamManager looks for to do its stream processor selection.
-	 * @type {string | null}
-	 */
-	#headerName = null;
-	#headerRegExp;
 
 	/**
 	 * This enables ALTSVC on the outside port as well as adding CORS headers and responding to OPTIONS requests.
@@ -96,7 +102,7 @@ export default class ServiceManager {
 	/**
 	 * Sets the ServiceManager that should be invoked when the marker is matched. This is used for chaining.
 	 * @param {string} marker
-	 * @param {string} serviceManager
+	 * @param {ServiceManager} serviceManager
 	 */
 	setSubManager(marker, serviceManager) {
 		this.#setServiceProcessor(marker, serviceManager);
@@ -132,9 +138,11 @@ export default class ServiceManager {
 		}
 
 		const streamProcessor = this.#streamProcessors.get(headers[this.#headerName]);
+
 		if (!streamProcessor) {
 			return this.#streamProcessors.get("");
 		}
+
 		return streamProcessor;
 	}
 
@@ -144,13 +152,15 @@ export default class ServiceManager {
 	 * @param {IncomingHttpHeaders} headers
 	 */
 	handleCORS(stream, headers) {
-		if (this.altSvc)
+		if (this.altSvc) {
 			stream.session.altsvc(this.altSvc, stream.id);
+    }
 
 		// All subsequent respond calls will add these headers.
 		const additionalHeaders = {
 			[HTTP2_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN]: "*",
 		};
+
 		if (this.enableCors) {
 			if (typeof this.enableCors === "object") {
 				Object.assign(additionalHeaders, {
@@ -160,6 +170,7 @@ export default class ServiceManager {
 					"Access-Control-Allow-Methods": `${this.enableCors["Access-Control-Allow-Methods"] || "*"}`
 				});
 			}
+
 			const oldRespondFunction = stream.respond;
 			stream.respond = (respondHeaders, respondOptions) => {
 				oldRespondFunction.call(stream, Object.assign({}, respondHeaders, additionalHeaders), respondOptions);

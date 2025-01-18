@@ -1,4 +1,10 @@
 export class SessionContext {
+  /**
+   *
+   * @type {Object<string, * >}
+   */
+  #sessionData = {};
+
 	/**
 	 *
 	 * @param sessionData
@@ -12,12 +18,6 @@ export class SessionContext {
 			set: (target, prop, value, receiver) => Reflect.set(this.#sessionData, prop, value, receiver)
 		});
 	}
-
-	/**
-	 *
-	 * @type {Object<string, * >}
-	 */
-	#sessionData = {};
 }
 
 /**
@@ -30,21 +30,25 @@ export class StreamContext {
 	 * @type {Object<string, *>}
 	 */
 	processedHeaders;
+
 	/**
 	 * The internal Session Context.
 	 * @type {SessionContext}
 	 */
 	#sessionContext = null;
+
 	/**
 	 * Context Data.
 	 * @type {Object<string, *>}
 	 */
 	#contextData = {};
+
 	/**
 	 * Done with stream processing.
 	 * @type {boolean}
 	 */
 	#done = false;
+
 	/**
 	 * Done with stream processing?
 	 * @return {boolean}

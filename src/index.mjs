@@ -1,4 +1,3 @@
-//These are ordered by the order in which you'll need them :)
 export { default as Daemon } from "./daemon.mjs";
 export { default as Server } from "./server.mjs";
 export { default as ServiceManager } from "./service-manager.mjs";
