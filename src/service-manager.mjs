@@ -221,9 +221,13 @@ export default class ServiceManager {
       });
     }
 
+    // TODO: This executes on every hierarchical service manager
+    //  Move this out to a service manager preDescriptor in order to prevent computing multiple times
+    /*
     const virtualURL = new URL(`${headers[HTTP2_HEADER_PATH]}`, "https://localhost");
     context.searchParams = Array.from(virtualURL.searchParams.keys())
       .reduce((acc, item) => (acc[item] = virtualURL.searchParams.get(item), acc), {});
+     */
 
     const selectedProcessor = this.#getSelectedProcessor(stream, passedContext.processedHeaders);
 

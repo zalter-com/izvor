@@ -88,6 +88,8 @@ export default class Server extends EventEmitter {
       this.emit("session", session, sessionContext);
 
       this.#serviceManager && session.on("stream", (stream, headers, flags) => {
+        this.emit("stream", stream);
+
         this.#serviceManager.handle(stream, headers, flags, sessionContext)
           .catch((error) => {
             console.error(error);
