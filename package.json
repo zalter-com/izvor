@@ -1,10 +1,11 @@
 {
 	"name": "izvor",
 	"author": "Zalter",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Server Core functionality",
-	"keywords": [],
+	"keywords": ["http2", "server", "framework", "microservice", "service", "h2", "daemon", "api", "streams", "session"],
 	"license": "MIT",
+  "repository": "https://github.com/zalter-io/izvor/",
 	"main": "src/index.mjs",
 	"scripts": {
 		"help": "node ./ help",
