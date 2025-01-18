@@ -64,7 +64,7 @@ export default class Daemon {
 			let gracefulExitCount = 0;
 
 			cluster.on("exit", (worker, code, signal) => {
-				console.info(`Cluster worker with PID ${worker.process.pid} existed with code ${code} and signal ${signal}.`);
+				console.info(`Cluster worker with PID ${worker.process.pid} exited with code ${code} and signal ${signal}.`);
 
 				if (worker.exitedAfterDisconnect) {
 					console.info("Cluster worker exited after disconnect.");
@@ -100,7 +100,8 @@ export default class Daemon {
 
 				if (Daemon.NODE_ENV !== "development") {
 					cluster.disconnect(() => {
-						this.startDaemon();
+            process.exit();
+            this.startDaemon();
 					});
 				} else {
 					cluster.disconnect();
@@ -120,7 +121,8 @@ export default class Daemon {
 				console.info("Process received SIGINT, disconnecting cluster workers.");
 				console.info("Active connection may or may not be stopped. Use --force to ensure.");
 				cluster.disconnect();
-			});
+        process.exit();
+      });
 
 			process.on("SIGTERM", () => {
 				console.info("Process received SIGTERM, disconnecting cluster workers.");
@@ -176,7 +178,7 @@ export default class Daemon {
 			process.exit(Daemon.EXIT_CODE_CANNOT_EXECUTE);
 		} else {
 			fs.writeFileSync(Daemon.PIDFILE_PATH, this.pid ? `${this.pid}` : "");
-			process.kill(this.pid, "SIGHUP");
+			process.kill(this.pid, process.platform.startsWith("win") ? "SIGINT": "SIGHUP");
 			process.exit(Daemon.EXIT_CODE_OK);
 		}
 	};

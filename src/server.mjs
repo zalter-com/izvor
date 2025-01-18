@@ -31,6 +31,12 @@ export default class Server extends EventEmitter {
 	 */
 	#serviceManager = null;
 
+  /**
+   *
+   * @type {Set<Http2ServerSession>}
+   */
+	#sessions = new Set();
+
 	/**
 	 * @emits ["close", "connect", "error", "session", "listen"]
 	 * @param {Server~ServerOptions} options
@@ -76,7 +82,7 @@ export default class Server extends EventEmitter {
 
 			this.emit("session", session, sessionContext);
 
-			session.on("stream", (stream, headers, flags) => {
+			this.#serviceManager && session.on("stream", (stream, headers, flags) => {
 				this.#serviceManager.handle(stream, headers, flags, sessionContext)
 					.catch((error) => {
 						console.error(error);
@@ -93,10 +99,16 @@ export default class Server extends EventEmitter {
 						}
 					});
 			});
+			session.on("close", ()=>{
+			  this.emit("sessionclose", session, sessionContext);
+      })
 		});
 
 		this.#http2SecureServer.listen(port, host, () => {
 			this.emit("listen");
 		});
 	}
+	stop(){
+	  this.#http2SecureServer.close();
+  }
 }
