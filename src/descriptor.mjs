@@ -158,12 +158,14 @@ export class Descriptor extends BasicDescriptor {
   async handle(stream, headers, flags, context) {
     try {
       for (const descriptor of this.#preDescriptors) {
-        if (!context.done) {
+        if (!context.done && !stream.headersSent) {
           await descriptor.handle(stream, headers, flags, context);
         }
       }
 
-      await super.handle(stream, headers, flags, context);
+      if (!context.done && !stream.headersSent) {
+        await super.handle(stream, headers, flags, context);
+      }
 
       for (const descriptor of this.#postDescriptors) {
         await descriptor.handle(stream, headers, flags, context);

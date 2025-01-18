@@ -1,9 +1,11 @@
+// Note: There's a bug with the Reflect receiver, somehow it thinks that context data has a setter and tries to put the receiver as its this.
+
 export class SessionContext {
   /**
    *
    * @type {Object<string, * >}
    */
-  #sessionData = {};
+  #data = {};
 
   /**
    *
@@ -11,11 +13,11 @@ export class SessionContext {
    * @return {Object<string, *>}
    */
   constructor(sessionData) {
-    this.#sessionData = Object.assign(this.#sessionData, sessionData);
+    this.#data = Object.assign(this.#data, sessionData);
 
     return new Proxy(this, {
-      get: (target, prop, receiver) => Reflect.get(this.#sessionData, prop, receiver),
-      set: (target, prop, value, receiver) => Reflect.set(this.#sessionData, prop, value, receiver)
+      get: (target, prop) => Reflect.get(this.#data, prop),
+      set: (target, prop, value) => Reflect.set(this.#data, prop, value)
     });
   }
 }
@@ -26,7 +28,7 @@ export class SessionContext {
 export class StreamContext {
   /**
    * Processed Headers.
-   * @note Declaration is only for documentation. The one in contextData is used instead.
+   * @note Declaration is only for documentation. The one in data is used instead.
    * @type {Object<string, *>}
    */
   processedHeaders;
@@ -41,7 +43,7 @@ export class StreamContext {
    * Context Data.
    * @type {Object<string, *>}
    */
-  #contextData = {};
+  #data = {};
 
   /**
    * Done with stream processing.
@@ -66,23 +68,23 @@ export class StreamContext {
   }
 
   /**
-   * @param sessionContext
-   * @param contextData
+   * @param {SessionContext | Object<string, *>} sessionContext
+   * @param {Object<string, *>} data
    * @return {Object<string, *>}
    */
-  constructor(sessionContext, contextData) {
+  constructor(sessionContext, data) {
     if (sessionContext instanceof SessionContext) {
       this.#sessionContext = sessionContext;
     } else {
       this.#sessionContext = new SessionContext(sessionContext);
     }
 
-    this.#contextData = Object.assign(this.#contextData, contextData);
-    delete this.#contextData.sessionData;
-    this.#contextData.sessionData = this.#sessionContext;
+    this.#data = Object.assign(this.#data, data);
+    delete this.#data.sessionData;
+    this.#data.sessionData = this.#sessionContext;
 
     return new Proxy(this, {
-      set: (target, prop, value, receiver) => {
+      set: (target, prop, value) => {
         switch (prop) {
           case "sessionData":
             return Object.assign(this.#sessionContext, value);
@@ -91,9 +93,9 @@ export class StreamContext {
             else return this.#done = value;
         }
 
-        return Reflect.set(this.#contextData, prop, value, receiver);
+        return Reflect.set(this.#data, prop, value);
       },
-      get: (target, prop, receiver) => {
+      get: (target, prop) => {
         switch (prop) {
           case "sessionData":
             return this.#sessionContext;
@@ -101,7 +103,7 @@ export class StreamContext {
             return this.#done;
         }
 
-        return Reflect.get(this.#contextData, prop, receiver);
+        return Reflect.get(this.#data, prop);
       }
     });
   }

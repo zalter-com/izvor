@@ -186,10 +186,12 @@ export default class Service {
       if (selectedDescriptor || this.#alwaysExecPreDescriptors) {
         // I think pre descriptors should be executed only if there's a handler found, otherwise execute only the post descriptors?
         for (const descriptor of this.#preDescriptors) {
-          await descriptor.handle(stream, headers, flags, context);
+          if (!context.done && !stream.headersSent) {
+            await descriptor.handle(stream, headers, flags, context);
+          }
         }
 
-        if (selectedDescriptor) {
+        if (selectedDescriptor && !context.done && !stream.headersSent) {
           await selectedDescriptor.handle(stream, headers, flags, context);
         }
       }

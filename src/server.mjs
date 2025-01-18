@@ -33,24 +33,16 @@ export default class Server extends EventEmitter {
   #serviceManager = null;
 
   /**
-   *
-   * @type {Set<ServerHttp2Session>}
-   */
-  #sessions = new Set();
-
-  /**
    * @emits ["close", "connect", "error", "session", "listen"]
    * @param {Server~ServerOptions} options
    */
   constructor(options) {
     super();
 
-    if (
-      !(
-        (typeof options?.ssl?.key === "string" && typeof options?.ssl?.cert === "string") ||
-        (options?.ssl?.key instanceof Buffer && options?.ssl?.cert instanceof Buffer)
-      )
-    ) {
+    if (!(
+      (typeof options?.ssl?.key === "string" && typeof options?.ssl?.cert === "string") ||
+      (options?.ssl?.key instanceof Buffer && options?.ssl?.cert instanceof Buffer)
+    )) {
       throw new Error("SSL key and certificate must be provided.");
     }
 
@@ -112,9 +104,6 @@ export default class Server extends EventEmitter {
               stream.end();
             }
           });
-      });
-      session.on("close", () => {
-        this.emit("session_close", session, sessionContext);
       });
     });
 

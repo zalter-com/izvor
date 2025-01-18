@@ -6,7 +6,7 @@ const {
   HTTP2_HEADER_STATUS
 } = http2Constants;
 
-export default class GeneralErrorDescriptor extends ErrorDescriptor {
+export class GeneralErrorDescriptor extends ErrorDescriptor {
   constructor() {
     super({
       handler: (stream, headers, flags, context, error) => {
